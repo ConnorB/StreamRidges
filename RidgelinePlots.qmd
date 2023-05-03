@@ -55,6 +55,16 @@ qRidges <- gageQ %>%
       family = "Helvetica Neue"))
 
 qRidges #Look at plot
+
+
+#Save plot 
+ggsave(filename =  paste0(gageQ$site_no[1], "_Ridge.png"),
+       plot = qRidges,
+       device = "png",
+       path =  "Plots",
+       width = 210,
+       height = 148,
+       units = "mm")
 ```
 
 # 
