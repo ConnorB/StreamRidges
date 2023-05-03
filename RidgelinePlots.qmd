@@ -58,6 +58,7 @@ qRidges #Look at plot
 
 
 #Save plot 
+#saving size as A5 paper, A4 is metric equivalent of US Letter size
 ggsave(filename =  paste0(gageQ$site_no[1], "_Ridge.png"),
        plot = qRidges,
        device = "png",
