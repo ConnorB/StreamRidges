@@ -17,42 +17,49 @@ library(ggridges)
 
 ```{r}
 #Get discharge data from NWIS
-gageQ <- readNWISdv(siteNumbers = "06879650", #Gage number, exaple gage is Kings Creek, KS
+rawGageQ <- readNWISdv(siteNumbers = "06879650", #Gage number, exaple gage is Kings Creek, KS
                      parameterCd = "00060", #Discharge
-                     startDate = "1979-10-01", #Start of first water year for selected gage
-                     endDate = "2022-09-30") #End of last water year
+                     startDate = "1979-04-11", #Start of first water year for selected gage
+                     endDate = today()) #End of last water year
 
 #Rename columns to make sense
-gageQ <- renameNWISColumns(gageQ)
-gageQ <- gageQ %>% 
+gageQ <- renameNWISColumns(rawGageQ) %>% 
   select(-agency_cd, -Flow_cd) %>% 
   rename(FlowCFS = Flow) %>% #Label discharge units (cubic feet per second)
-  mutate(WaterYear = calcWaterYear(Date), 
-         DOY = yday(Date), #for plotting
-         FlowCMS = round(FlowCFS * 0.028316847, 2)) %>%  #cfs to cms
-  relocate(site_no, Date, DOY, WaterYear, FlowCFS, FlowCMS) #Make nice order
+  mutate(Year = year(Date),
+    WaterYear = calcWaterYear(Date), 
+    DOY = yday(Date), #for plotting
+    FlowCMS = round(FlowCFS * 0.028316847, 2)) %>%  #cfs to cms
+  relocate(site_no, Date, DOY, Year, WaterYear, FlowCFS, FlowCMS) %>%  #Make nice order
+  group_by(Year) %>% 
+  filter((n() == 365 & !leap_year(Year)) | (n() == 366 & leap_year(Year))) %>% 
+  ungroup() %>% 
+  filter(DOY <= 365)
 ```
 
 # Ridgeline Plot
 
 ```{r}
 qRidges <- gageQ %>% 
-  ggplot(aes(x = DOY, y =  WaterYear, height = FlowCMS, group = WaterYear)) +
+  ggplot(aes(x = DOY, y =  Year, height = FlowCMS, group = Year)) +
   geom_ridgeline(color = "white", fill = "black", scale = 1) +
   labs(title = "KINGS CREEK, KANSAS", caption = "STREAMFLOW") +
+  scale_y_reverse()+
   theme_void() +
   theme(plot.background = element_rect(fill = "black", color = "black"),
     panel.background = element_rect(fill = "black", color = "black"),
     plot.title = element_text(
       color = "white",
       hjust = 0.5,
-      size = 40,
-      family = "Helvetica Neue"),
+      vjust = -1,
+      size = 45,
+      family = "Helvetica"),
     plot.caption = element_text(
       color = "white",
       hjust = 0.5,
-      size = 35,
-      family = "Helvetica Neue"))
+      vjust = 2.5,
+      size = 40,
+      family = "Helvetica"))
 
 qRidges #Look at plot
 ```
@@ -60,12 +67,14 @@ qRidges #Look at plot
 ## Save Plot
 
 ```{r}
-#saving size as A5 paper, A4 is metric equivalent of US Letter size
+#saving size as A4 paper
 ggsave(filename =  paste0(gageQ$site_no[1], "_Ridge.png"),
        plot = qRidges,
        device = "png",
        path =  "Plots",
-       width = 210,
-       height = 148,
-       units = "mm")
+       width = 297,
+       height = 210,
+       units = "mm",
+       limitsize = F,
+       dpi = 700)
 ```
