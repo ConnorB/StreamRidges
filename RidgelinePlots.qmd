@@ -42,7 +42,7 @@ gageQ <- renameNWISColumns(rawGageQ) %>%
 ```{r}
 qRidges <- gageQ %>% 
   ggplot(aes(x = DOY, y =  Year, height = FlowCMS, group = Year)) +
-  geom_ridgeline(color = "white", fill = "black", scale = 1) +
+  geom_ridgeline(color = "white", fill = "black", scale = 1, linewidth = 0.6) +
   labs(title = "KINGS CREEK, KANSAS", caption = "STREAMFLOW") +
   scale_y_reverse()+
   theme_void() +
